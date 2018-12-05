@@ -1,0 +1,44 @@
+git:
+  short_hash: true
+
+project_name: lora-gateway-bridge
+
+builds:
+  - main: cmd/lora-gateway-bridge/main.go
+    binary: lora-gateway-bridge
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - 386
+      - arm
+      - arm64
+    goarm:
+      - 5
+      - 6
+      - 7
+    ignore:
+      - goos: darwin
+        goarch: 386
+
+release:
+  disable: true
+
+nfpm:
+  vendor: LoRa Server project
+  homepage: https://www.loraserver.io/
+  maintainer: Orne Brocaar <info@brocaar.com>
+  description: LoRa Gateway Bridge
+  license: MIT
+  formats:
+    - deb
+  bindir: /usr/bin
+  files:
+    "packaging/files/lora-gateway-bridge.rotate": "/etc/logrotate.d/lora-gateway-bridge"
+    "packaging/files/lora-gateway-bridge.init": "/usr/lib/lora-gateway-bridge/scripts/lora-gateway-bridge.init"
+    "packaging/files/lora-gateway-bridge.service": "/usr/lib/lora-gateway-bridge/scripts/lora-gateway-bridge.service"
+  scripts:
+    postinstall: "packaging/scripts/post-install.sh"
+    postremove: "packaging/scripts/post-remove.sh"

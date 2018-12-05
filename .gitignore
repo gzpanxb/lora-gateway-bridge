@@ -1,6 +1,19 @@
 # hidden files
 .*
 
+# configuration files
+*.toml
+
+# certificates
+/certs
+
 # binaries
-dist/
-build/
+/dist
+/build
+/docs/public
+
+# dependencies
+/vendor
+
+# certificates
+/certs

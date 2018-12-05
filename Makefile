@@ -1,18 +1,17 @@
 .PHONY: build clean test package serve run-compose-test
 PKGS := $(shell go list ./... | grep -v /vendor/)
-VERSION := $(shell git describe --always)
-GOOS ?= linux
-GOARCH ?= amd64
+VERSION := $(shell git describe --always |sed -e "s/^v//")
 
 build:
-	@echo "Compiling source for $(GOOS) $(GOARCH)"
+	@echo "Compiling source"
 	@mkdir -p build
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "-X main.version=$(VERSION)" -o build/lora-gateway-bridge$(BINEXT) cmd/lora-gateway-bridge/main.go
+	go build $(GO_EXTRA_BUILD_ARGS) -ldflags "-s -w -X main.version=$(VERSION)" -o build/lora-gateway-bridge cmd/lora-gateway-bridge/main.go
 
 clean:
 	@echo "Cleaning up workspace"
 	@rm -rf build
-	@rm -rf dist/$(VERSION)
+	@rm -rf dist
+	@rm -rf docs/public
 
 test:
 	@echo "Running tests"
@@ -22,12 +21,25 @@ test:
 	@go vet $(PKGS)
 	@go test -cover -v $(PKGS)
 
-package: clean build
-	@echo "Creating package for $(GOOS) $(GOARCH)"
-	@mkdir -p dist/$(VERSION)
-	@cp build/* dist/$(VERSION)
-	@cd dist/$(VERSION)/ && tar -pczf ../lora_gateway_bridge_$(VERSION)_$(GOOS)_$(GOARCH).tar.gz .
-	@rm -rf dist/$(VERSION)
+dist:
+	@goreleaser
+	mkdir -p dist/upload/tar
+	mkdir -p dist/upload/deb
+	mv dist/*.tar.gz dist/upload/tar
+	mv dist/*.deb dist/upload/deb
+
+snapshot:
+	@goreleaser --snapshot
+
+dev-requirements:
+	go get -u golang.org/x/lint/golint
+	go get -u github.com/kisielk/errcheck
+	go get -u github.com/golang/dep/cmd/dep
+	go get -u github.com/goreleaser/goreleaser
+	go get -u github.com/goreleaser/nfpm
+
+requirements:
+	dep ensure -v
 
 # shortcuts for development
 
